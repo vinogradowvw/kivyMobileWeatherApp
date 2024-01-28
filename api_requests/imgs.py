@@ -44,14 +44,4 @@ icon_mapping = {
     }
 
 
-def get_proper_background():
-    pass
 
-
-def get_colour_theme(path):
-    img = Image.open(path)
-    mean_col = ImageStat.Stat(img).mean
-    grey = [0.5, 0.5, 0.5, 0.5]
-    colour = [round((mean_col[i]/255 - grey[i])/2) for i in range(4)]
-    print(colour)
-    return colour

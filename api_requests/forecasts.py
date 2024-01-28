@@ -25,7 +25,7 @@ def current_weather(config):
 
     current_conditions = {
         'WeatherText': response[0]['WeatherText'] + ', ' + response[0]['RealFeelTemperature']['Metric']['Phrase'],
-        'WeatherIcon': icon_mapping[response[0]['WeatherIcon']],
+        'WeatherIcon': response[0]['WeatherIcon'],
         'IsDayTime': response[0]['IsDayTime'],
         'Temperature': str(response[0]['Temperature']['Metric']['Value']),
         'RealFeelTemperature': str(response[0]['RealFeelTemperature']['Metric']['Value']),

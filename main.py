@@ -26,6 +26,7 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from main_kv import KV
 from kivy.uix.scrollview import ScrollView
+from api_requests.imgs import icon_mapping
 phone_width = 700
 phone_height = 1000
 
@@ -34,14 +35,32 @@ Window.size = (phone_width, phone_height)
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+background_src = None
 
 
 class CurrentWeatherWidget(BoxLayout):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         current_conditions = forecasts.current_weather(config)
         self.ids.location_label.text = config.get('main_config', 'location_name')
-        self.ids.weather_icon.icon = current_conditions['WeatherIcon']
+
+        global background_src
+
+        app = MDApp.get_running_app()
+
+        if not current_conditions['IsDayTime']:
+            background_src = 'src/background_night.png'
+            app.theme_cls.theme_style = "Dark"
+        elif current_conditions['WeatherIcon'] in [6, 7, 8, 11, 12, 13, 14, 15, 16,
+                                                   17, 18, 19, 20, 22, 23, 24, 25, 26, 29, 32]:
+            background_src = 'src/background_rainy.png'
+            app.theme_cls.theme_style = "Dark"
+        else:
+            background_src = 'src/background_sunny.png'
+            MDApp.get_running_app().theme_cls.theme_style = "Light"
+
+        self.ids.weather_icon.icon = icon_mapping[current_conditions['WeatherIcon']]
         self.ids.temperature.text = current_conditions['Temperature'] + '°C'
         self.ids.weather_text.text = current_conditions['WeatherText']
         self.ids.realfeel_temperature.text = current_conditions['RealFeelTemperature'] + '°C'
@@ -106,10 +125,11 @@ class Hours12ForecastsWidget(BoxLayout):
                       )
 
         plot = LinePlot(color=[0, 0, 0, 0.7], line_width=2)
-        plot.points = tuple(zip(data_x, data_y))
-        self.add_widget(graph_layout)
+        plot.points = (tuple(zip(data_x, data_y)))
         graph.add_plot(plot)
         graph_layout.add_widget(graph)
+        self.add_widget(graph_layout)
+
 
         self.add_widget(icons_layout)
 
@@ -166,20 +186,24 @@ class AppScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.add_widget(AsyncImage(allow_stretch=True, keep_ratio=False, source='src/background_sunny.png'))
+        self.background = AsyncImage(allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
 
         self.container = ScrollView(do_scroll_y=True,
                                     do_scroll_x=False,
                                     size_hint=(1, None),
                                     size=(Window.width, Window.height))
         self.container.add_widget(ForecastContainer(size_hint_y=None, height=self.container.height))
+
+        global background_src
+        self.background.source = background_src
+
         self.add_widget(self.container)
         self.add_widget(BottomBar())
 
 
 class WeatherApp(MDApp):
     def build(self):
-
         return Builder.load_string(KV)
 
     def open_location_selector(self):
@@ -214,6 +238,8 @@ class WeatherApp(MDApp):
                 ForecastContainer(size_hint_y=None,
                                   height=self.root.ids.main_screen.container.height)
             )
+            global background_src
+            self.root.ids.main_screen.background.source = background_src
             self.root.ids.search_field.text = ''
 
         def add_icon_item(loc_name):

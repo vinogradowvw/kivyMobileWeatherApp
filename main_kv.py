@@ -46,7 +46,6 @@ Screen:
             id: settings
             anchor: "left"
 
-
 <LocationSelectorItem>:
     size_hint_y: None
     width: dp(20)
@@ -106,16 +105,24 @@ Screen:
 
 <Hours12ForecastsWidget>:
     orientation: 'vertical'
+    spacing: dp(10)
+    padding: dp(20)
     size_hint_y: None
     height: dp(500)
-    padding: dp(20)
     canvas.before:
         Color:
-            rgba: 1, 1, 1, 1
+            rgba: 1, 1, 1, 0.5
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [20, 20, 20, 20]
+    MDLabel:
+        size_hint_y: 0.1
+        text: 'Прогноз на 12 часов'
+        font_name: 'MyFont'
+        font_size: "20sp"
+        
+    
     
 
 <CurrentWeatherWidget>:
@@ -127,10 +134,12 @@ Screen:
     MDLabel:
         id: location_label
         padding: dp(20)
+        
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
         font_style: "H1"
         font_name: 'MyFont'
+        font_size: '80sp'
         bold: True
         halign: "left"
         size_hint_y: None
