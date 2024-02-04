@@ -69,8 +69,9 @@ def hour12_forecast(config):
         precipitation.append(response[i]['PrecipitationProbability'])
         wind.append(response[i]['Wind']['Speed']['Value'] * 1.609)
         humid.append(response[i]['RelativeHumidity'])
-        timestamps.append(response[i]['DateTime'])
-        # icons.append(weather_icon(response[i]['WeatherIcon']))
+        datetime_object = datetime.fromisoformat(response[i]['DateTime'])
+        timestamps.append(datetime_object.hour)
+        icons.append(icon_mapping[response[i]['WeatherIcon']])
 
     return dict(temperature=temp, precipitation=precipitation, wind=wind, humid=humid, uvindex=uvindex,
                 timestamps=timestamps, icons=icons)

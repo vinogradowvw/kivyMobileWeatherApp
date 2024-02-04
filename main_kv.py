@@ -5,7 +5,7 @@ Screen:
             AppScreen:
                 id: main_screen
 
-                
+
         MDNavigationDrawer:
             id: location_selector
             anchor: "right"
@@ -16,7 +16,7 @@ Screen:
                     id: search_field
                     hint_text: 'Search location'
                     on_text: app.update_location_suggestions()
-        
+
                 RecycleView:
                     id: suggestions
                     key_viewclass: 'viewclass'
@@ -28,7 +28,7 @@ Screen:
                         size_hint_y: None
                         height: self.minimum_height
                         orientation: 'vertical'
-        
+
                 RecycleView:
                     id: saved_locations
                     key_viewclass: 'viewclass'
@@ -41,7 +41,7 @@ Screen:
                         size_hint_y: None
                         height: self.minimum_height
                         orientation: 'vertical'     
-                                
+
         LeftSettings:
             id: settings
             anchor: "left"
@@ -64,7 +64,7 @@ Screen:
         icon: "map"
         on_action_button: app.open_location_selector()
         left_action_items: [["menu", lambda x: app.root.ids.settings.set_state("open")]]
-        
+
 
 <ForecastContainer>:
     orientation: 'vertical'
@@ -101,7 +101,7 @@ Screen:
         text: 'Прогноз на 5 дней'
         font_name: 'MyFont'
         font_size: "20sp"
-        
+
 
 <Hours12ForecastsWidget>:
     orientation: 'vertical'
@@ -121,9 +121,15 @@ Screen:
         text: 'Прогноз на 12 часов'
         font_name: 'MyFont'
         font_size: "20sp"
-        
-    
-    
+    Spinner: 
+        size_hint: 0.2, 0.1
+        id: forecast_12_selector
+        text: 'Температура'
+        values: ['Температура', 'Осадки', 'Ветер', 'Влажность', 'UV Индекс']
+        on_text: app.hours_12_select_proper_info(forecast_12_selector.text)
+        theme_text_color: "Custom"  # Использовать пользовательские цвета для текста
+        text_color: 1, 1, 1, 1  # Белый цвет текста+
+
 
 <CurrentWeatherWidget>:
     orientation: 'vertical'
@@ -134,7 +140,7 @@ Screen:
     MDLabel:
         id: location_label
         padding: dp(20)
-        
+
         theme_text_color: "Custom"
         text_color: 1, 1, 1, 1
         font_style: "H1"
@@ -259,7 +265,7 @@ Screen:
                     id: pressure
                     font_name: 'MyFont'
                     font_size: '30sp'
-                
+
 
 <CurrentWeatherBottomElement@BoxLayout>:
     padding: dp(10)
@@ -274,7 +280,7 @@ Screen:
             pos: self.pos
             size: self.size
             radius: [20, 20, 20, 20]
-            
+
 <CustomOneLineIconListItem>:
     IconLeftWidget:
         icon: root.icon

@@ -15,7 +15,7 @@ from kivymd.app import MDApp
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph, LinePlot
-from kivymd.uix.label import MDLabel
+from kivymd.uix.label import MDLabel, MDIcon
 from kivymd.uix.navigationdrawer import MDNavigationDrawer
 from kivymd.uix.toolbar import MDBottomAppBar
 import configparser
@@ -98,22 +98,39 @@ class Days5ForecastsWidget(BoxLayout):
 
 
 class Hours12ForecastsWidget(BoxLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, metric, **kwargs):
         super().__init__(**kwargs)
-        self.refresh_12hour_forecast()
+        self.data = forecasts.hour12_forecast(config)
 
-    def refresh_12hour_forecast(self):
-        icons_layout = GridLayout(cols=12, size_hint=(1, 0.1))
-        icons = ['weather-sunny']
-        icons = icons * 12
-        for icon in icons:
-            icon_widget = OneLineIconListItem()
-            icon_widget.add_widget(IconLeftWidget(icon=icon))
-            icons_layout.add_widget(icon_widget)
+        self.graph_layout = BoxLayout(size_hint=(1, 0.9))
+        self.add_widget(self.graph_layout)
 
-        graph_layout = BoxLayout(size_hint=(1, 0.9))
-        data_x = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
-        data_y = [12, 12, 13, 14, 15, 16, 13, 12, 12, 11, 10, 10, 8]
+        self.icons_layout = GridLayout(cols=12, size_hint=(1, 0.1))
+        self.add_widget(self.icons_layout)
+
+        self.refresh_12hour_forecast(metric)
+
+    def refresh_12hour_forecast(self, metric):
+
+        metric_mapping = {
+            'Температура': 'temperature',
+            'Осадки': 'precipitation',
+            'Ветер': 'wind',
+            'Влажность': 'humid',
+            'UV Индекс': 'uvindex',
+        }
+        self.icons_layout.clear_widgets()
+
+        for i, icon in enumerate(self.data['icons']):
+            icon_widget = BoxLayout(orientation='vertical')
+            icon_widget.add_widget(MDLabel(text=str(self.data['timestamps'][i])))
+            icon_widget.add_widget(MDIcon(icon=icon))
+            self.icons_layout.add_widget(icon_widget)
+
+        data_y = self.data[metric_mapping[metric]]
+        data_x = []
+        for i in range(12):
+            data_x.append(self.data['timestamps'][0] + i)
 
         graph = Graph(x_ticks_major=1, x_ticks_minor=2,
                       y_ticks_major=1,
@@ -127,11 +144,9 @@ class Hours12ForecastsWidget(BoxLayout):
         plot = LinePlot(color=[0, 0, 0, 0.7], line_width=2)
         plot.points = (tuple(zip(data_x, data_y)))
         graph.add_plot(plot)
-        graph_layout.add_widget(graph)
-        self.add_widget(graph_layout)
+        self.graph_layout.clear_widgets()
+        self.graph_layout.add_widget(graph)
 
-
-        self.add_widget(icons_layout)
 
 class ForecastSeparator(BoxLayout):
     def __init__(self, **kwargs):
@@ -145,7 +160,8 @@ class ForecastContainer(BoxLayout):
         self.add_widget(ForecastSeparator())
         self.add_widget(Days5ForecastsWidget())
         self.add_widget(ForecastSeparator())
-        self.add_widget(Hours12ForecastsWidget())
+        self.Hours12 = Hours12ForecastsWidget('Температура')
+        self.add_widget(self.Hours12)
 
 
 class BottomBar(MDBottomAppBar):
@@ -193,7 +209,8 @@ class AppScreen(Screen):
                                     do_scroll_x=False,
                                     size_hint=(1, None),
                                     size=(Window.width, Window.height))
-        self.container.add_widget(ForecastContainer(size_hint_y=None, height=self.container.height))
+        self.container_widget = ForecastContainer(size_hint_y=None, height=self.container.height)
+        self.container.add_widget(self.container_widget)
 
         global background_src
         self.background.source = background_src
@@ -208,6 +225,9 @@ class WeatherApp(MDApp):
 
     def open_location_selector(self):
         self.root.ids.location_selector.set_state("open")
+
+    def hours_12_select_proper_info(self, metric):
+        self.root.ids.main_screen.container_widget.Hours12.refresh_12hour_forecast(metric)
 
     def update_location_suggestions(self):
         loc_name = self.root.ids.search_field.text
@@ -234,10 +254,12 @@ class WeatherApp(MDApp):
             config.read_file(open('config.ini'))
 
             self.root.ids.main_screen.container.clear_widgets()
-            self.root.ids.main_screen.container.add_widget(
-                ForecastContainer(size_hint_y=None,
+            self.root.ids.main_screen.container_widget = ForecastContainer(size_hint_y=None,
                                   height=self.root.ids.main_screen.container.height)
-            )
+
+            self.root.ids.main_screen.container.add_widget(
+                self.root.ids.main_screen.container_widget
+                )
             global background_src
             self.root.ids.main_screen.background.source = background_src
             self.root.ids.search_field.text = ''
